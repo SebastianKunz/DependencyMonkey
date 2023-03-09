@@ -1,0 +1,11 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+## 0.2.3 | 2022.3.2
+- Allows upgrading a package within a solution and all of it's dependencies. Update strategies are:
+  - Major
+  - Minor
+  - Patch
+  - Prerelease
+  - Remove prerelease
+- Upgrades are available via menu when the user right clicks on the desired project.
