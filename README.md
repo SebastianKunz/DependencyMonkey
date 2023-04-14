@@ -64,6 +64,17 @@ Navigate to the tools menu and look for `DependencyMonkey`. Alternatively you ca
 
 **VersionUpgradeStrategy** - Determines what part of the semantic version should be increased when increasing the version from a non prerelease version to a prerelease version. Example: With the default value 'Patch' the version will go from 1.2.3 -> 1.2.4-beta.1 when upgrading to the next prerelease version.
 
+## How to increase sdk version
+
+In `gradle.properties` set `ProductVersion` to the latest version.
+In `Plugin.props` set `SdkVersion` to the latest version.
+
+## How to increase the plugin version
+
+In `gradle.properties` set `PluginVersion` to the next release version.
+In `runVisualStudio.ps1` increase the version.
+
+Adjust the `CHANGELOG.md`
 
 ## How to build
 
