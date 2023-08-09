@@ -66,17 +66,26 @@ Navigate to the tools menu and look for `DependencyMonkey`. Alternatively you ca
 
 ## How to increase sdk version
 
-In `gradle.properties` set `ProductVersion` to the latest version.
-In `Plugin.props` set `SdkVersion` to the latest version.
+- In [gradle.properties](./gradle.properties) set `ProductVersion` to the latest version.
+- In [Plugin.props](./src/dotnet/Plugin.props) set `<SdkVersion>` to the latest version.
 
 ## How to increase the plugin version
 
-In `gradle.properties` set `PluginVersion` to the next release version.
-In `runVisualStudio.ps1` increase the version.
+- In [gradle.properties](./gradle.properties) set [PluginVersion](./runVisualStudio.ps1) to the next release version.
+- In [buildPlugin.ps1](./buildPlugin.ps1) adjust `Version` param.
+- In [runVisualStudio.ps1](./runVisualStudio.ps1) increase the version.
 
-Adjust the `CHANGELOG.md`
 
 ## How to build
 
-Run `.\gradlew.bat buildPlugin`.
-The artifact is now in `build/distributions`.
+Run
+```bash
+.\gradlew.bat buildPlugin
+```
+The artifact is now in [build/distributions](./build/distributions).
+
+## Bump SDK Version Checklist
+1. Follow [How to increase sdk version](#how-to-increase-sdk-version)
+2. Follow [How to increase the plugin version](#how-to-increase-the-plugin-version)
+3. Add entry to [CHANGELOG.md](./CHANGELOG.md)
+4. Follow [How to build](#how-to-build)
