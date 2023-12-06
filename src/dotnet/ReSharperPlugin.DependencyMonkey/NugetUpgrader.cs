@@ -78,13 +78,15 @@ public class NugetUpgrader
         var handler = CreateHandler(request);
         if (handler == null) return;
 
-        request?.State.Change.Advise(lifetime, state =>
-        {
-            if (!state.HasNew || !state.New.HasFlag(BuildRunState.Completed))
-                return;
+        request.AfterBuildCompleted.Advise(request.Lifetime, handler);
 
-            handler();
-        });
+        // request?.State.Change.Advise(lifetime, state =>
+        // {
+        //     if (!state.HasNew || !state.New.HasFlag(BuildRunState.Completed))
+        //         return;
+        //
+        //     handler();
+        // });
     }
 
     private Action CreateHandler(SolutionBuilderRequest request)
@@ -133,32 +135,47 @@ public class NugetUpgrader
 
     public void UpgradeProjectAndDependencies(IProject project, VersionUpdateOperation operation)
     {
-        if (_solutionBuilder.IsRunning())
-            return;
-        Reset();
+        try
+        {
+            if (_solutionBuilder.IsRunning())
+                return;
+            Reset();
 
-        _upgradeLifetime = _componentLifetime.CreateNested();
-        _backgroundProgress = _backgroundProgressIndicatorManager.CreateBackgroundProgress(_upgradeLifetime.Lifetime, "Dependency Monkey", Reset);
-        _solutionBuilder.RunningRequest.Change.Advise(_upgradeLifetime.Lifetime,
-            (change) => { HandleRunningRequestChange(_upgradeLifetime.Lifetime, change); });
+            _upgradeLifetime = _componentLifetime.CreateNested();
+            _backgroundProgress = _backgroundProgressIndicatorManager.CreateBackgroundProgress(_upgradeLifetime.Lifetime, "Dependency Monkey", Reset);
+            _solutionBuilder.RunningRequest.Change.Advise(_upgradeLifetime.Lifetime,
+                (change) =>
+                {
+                    try
+                    {
+                        HandleRunningRequestChange(_upgradeLifetime.Lifetime, change);
+                    }
+                    catch (LifetimeCanceledException ex)
+                    {
+                    }
+                });
 
-        var solution = project.GetSolution();
-        _graph = new SolutionGraph(solution, project);
-        _graph.Build();
+            ISolution solution = project.GetSolution();
+            _graph = new SolutionGraph(solution, project);
+            _graph.Build();
 
-        _backgroundProgress.Start(_graph.UpgradeOrder.Count);
+            _backgroundProgress.Start(_graph.UpgradeOrder.Count);
 
-        var settingsStore = solution.GetComponent<ISettingsStore>();
-        _settings = settingsStore.BindToContextTransient(ContextRange.ApplicationWide)
-            .GetKey<DependencyMonkeySettings>(SettingsOptimization.OptimizeDefault);
-        _versionBumper = new VersionBumper(_settings.VersionIncreaseStrategy, operation, _settings.PreReleaseTag);
+            var settingsStore = solution.GetComponent<ISettingsStore>();
+            _settings = settingsStore.BindToContextTransient(ContextRange.ApplicationWide)
+                .GetKey<DependencyMonkeySettings>(SettingsOptimization.OptimizeDefault);
+            _versionBumper = new VersionBumper(_settings.VersionIncreaseStrategy, operation, _settings.PreReleaseTag);
 
-        PerformNextUpgrade();
+            PerformNextUpgrade();
+        }
+        catch (LifetimeCanceledException ex)
+        {
+        }
     }
 
     private void IncreaseProjectVersionAndBuild(ProjectToUpgrade projectToUpgrade)
     {
-        _shellLocks.ExecuteOrQueue(_upgradeLifetime.Lifetime, "NugetUpgrader::PerformUpgrade", () =>
+        _shellLocks.ExecuteOrQueueEx(_upgradeLifetime.Lifetime, "NugetUpgrader::PerformUpgrade", () =>
         {
             _backgroundProgress.TaskName = "Adjusting project version";
             if (projectToUpgrade.CanIncreaseVersion)

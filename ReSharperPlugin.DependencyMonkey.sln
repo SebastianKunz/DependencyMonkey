@@ -9,8 +9,6 @@ ProjectSection(SolutionItems) = preProject
 	gradle.properties = gradle.properties
 EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSharperPlugin.DependencyMonkey", "src\dotnet\ReSharperPlugin.DependencyMonkey\ReSharperPlugin.DependencyMonkey.csproj", "{3301FA36-11AD-40DB-871E-08354B1464FD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSharperPlugin.DependencyMonkey.Rider", "src\dotnet\ReSharperPlugin.DependencyMonkey\ReSharperPlugin.DependencyMonkey.Rider.csproj", "{B50A6578-D00F-4514-9D0F-5E44F2365E9D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSharperPlugin.DependencyMonkey.Tests", "src\dotnet\ReSharperPlugin.DependencyMonkey.Tests\ReSharperPlugin.DependencyMonkey.Tests.csproj", "{3DFB1735-E463-4484-A1BA-403022148A44}"
@@ -21,10 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3301FA36-11AD-40DB-871E-08354B1464FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3301FA36-11AD-40DB-871E-08354B1464FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3301FA36-11AD-40DB-871E-08354B1464FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3301FA36-11AD-40DB-871E-08354B1464FD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B50A6578-D00F-4514-9D0F-5E44F2365E9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B50A6578-D00F-4514-9D0F-5E44F2365E9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B50A6578-D00F-4514-9D0F-5E44F2365E9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
