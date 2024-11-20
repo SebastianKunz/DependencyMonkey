@@ -3,26 +3,36 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.9.21'
-    id 'org.jetbrains.intellij' version '1.17.4'     // See https://github.com/JetBrains/gradle-intellij-plugin/releases
-    id 'com.jetbrains.rdgen' version '2024.1.1'      // See https://github.com/JetBrains/rd/releases
-    id 'me.filippov.gradle.jvm.wrapper' version '0.14.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.21' // See https://github.com/JetBrains/kotlin/releases
+    id 'org.jetbrains.intellij.platform' version '2.1.0'     // See https://github.com/JetBrains/gradle-intellij-plugin/releases
+    id 'com.jetbrains.rdgen' version '2024.3.1'      // See https://github.com/JetBrains/rd/releases
 }
 
 ext {
     isWindows = Os.isFamily(Os.FAMILY_WINDOWS)
     rdLibDirectory = {
-        new File(setupDependencies.idea.get().classes, "lib/rd")
+        new File(intellijPlatform.platformPath.resolve("lib/rd/").toAbsolutePath().toString())
     }
 }
 
 repositories {
     maven { url 'https://cache-redirector.jetbrains.com/intellij-repository/snapshots' }
     maven { url 'https://cache-redirector.jetbrains.com/maven-central' }
+    intellijPlatform {
+        defaultRepositories()
+        jetbrainsRuntime()
+    }
+}
+
+dependencies {
+  intellijPlatform {
+    rider("${ProductVersion}")
+    jetbrainsRuntime()
+  }
 }
 
 wrapper {
-    gradleVersion = '7.6'
+    gradleVersion = '8.11'
     distributionType = Wrapper.DistributionType.ALL
     distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
@@ -103,7 +113,6 @@ buildPlugin {
             into "${rootDir}/output"
         }
 
-        // TODO: See also org.jetbrains.changelog: https://github.com/JetBrains/gradle-changelog-plugin
         def changelogText = file("${rootDir}/CHANGELOG.md").text
         def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
         def changeNotes = changelogMatches.collect {
@@ -123,13 +132,8 @@ buildPlugin {
     }
 }
 
-intellij {
-    type = 'RD'
-    version = "${ProductVersion}"
-    downloadSources = false
+intellijPlatform {
     instrumentCode = false
-    // TODO: add plugins
-    // plugins = ["uml", "com.jetbrains.ChooseRuntime:1.0.9"]
 }
 
 runIde {
@@ -138,7 +142,7 @@ runIde {
 
     // Rider's backend doesn't support dynamic plugins. It might be possible to work with auto-reload of the frontend
     // part of a plugin, but there are dangers about keeping plugins in sync
-    autoReloadPlugins = false
+    autoReload = false
 
     // gradle-intellij-plugin will download the default version of the JBR for the snapshot. Update if required
     // jbrVersion = "jbr_jcef-11_0_6b765.40" // https://confluence.jetbrains.com/display/JBR/Release+notes
@@ -175,7 +179,6 @@ rdgen {
 }
 
 patchPluginXml {
-    // TODO: See also org.jetbrains.changelog: https://github.com/JetBrains/gradle-changelog-plugin
     def changelogText = file("${rootDir}/CHANGELOG.md").text
     def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
 
@@ -204,19 +207,5 @@ prepareSandbox {
             def file = file(f)
             if (!file.exists()) throw new RuntimeException("File ${file} does not exist")
         })
-    }
-}
-
-publishPlugin {
-//     dependsOn testDotNet
-    dependsOn buildPlugin
-    token = "${PublishToken}"
-
-    doLast {
-        exec {
-            executable "dotnet"
-            args "nuget","push","output/${DotnetPluginId}.${version}.nupkg","--api-key","${PublishToken}","--source","https://plugins.jetbrains.com"
-            workingDir rootDir
-        }
     }
 }

@@ -27,10 +27,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Application.Parts;
 
 namespace ReSharperPlugin.DependencyMonkey;
 
-[SolutionComponent]
+[SolutionComponent(Instantiation.Service)]
 public class NugetUpgrader
 {
     private readonly Lifetime _componentLifetime;

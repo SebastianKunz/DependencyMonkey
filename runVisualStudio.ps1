@@ -1,6 +1,6 @@
 Param(
     $RootSuffix = "DependencyMonkey",
-    $Version = "0.6.0"
+    $Version = "0.7.0"
 )
 
 Set-StrictMode -Version Latest
