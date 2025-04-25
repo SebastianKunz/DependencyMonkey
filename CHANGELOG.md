@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.8.0 | 2025.1.0
+
+Upgraded to the latest sdk version.
+
 ## 0.7.0 | 2024.3.0
 
 Upgraded to the latest sdk version.

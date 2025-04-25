@@ -68,6 +68,7 @@ Navigate to the tools menu and look for `DependencyMonkey`. Alternatively you ca
 
 - In [gradle.properties](./gradle.properties) set `ProductVersion` to the latest version.
 - In [Plugin.props](./src/dotnet/Plugin.props) set `<SdkVersion>` to the latest version.
+- In [libs.versions.toml](./gradle/libs.versions.toml) set `rdGen` to the latest version.
 
 ## How to increase the plugin version
 
