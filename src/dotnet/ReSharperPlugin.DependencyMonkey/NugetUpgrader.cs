@@ -37,6 +37,7 @@ public class NugetUpgrader
     private readonly Lifetime _componentLifetime;
     private readonly DependencyMonkeyUserNotifications _notifications;
     private readonly ISolutionBuilder _solutionBuilder;
+    
     private readonly IShellLocks _shellLocks;
     private readonly ISolution _solution;
 
@@ -139,7 +140,9 @@ public class NugetUpgrader
         Reset();
 
         _upgradeLifetime = _componentLifetime.CreateNested();
-        _backgroundProgress = _backgroundProgressIndicatorManager.CreateBackgroundProgress(_upgradeLifetime.Lifetime, "Dependency Monkey", Reset);
+        _backgroundProgress =
+            _backgroundProgressIndicatorManager.CreateBackgroundProgress(_upgradeLifetime.Lifetime, "Dependency Monkey",
+                Reset);
         _solutionBuilder.RunningRequest.Change.Advise(_upgradeLifetime.Lifetime,
             (change) => { HandleRunningRequestChange(_upgradeLifetime.Lifetime, change); });
 
@@ -161,19 +164,27 @@ public class NugetUpgrader
     {
         _shellLocks.ExecuteOrQueue(_upgradeLifetime.Lifetime, "NugetUpgrader::PerformUpgrade", () =>
         {
-            _backgroundProgress.TaskName = "Adjusting project version";
-            if (projectToUpgrade.CanIncreaseVersion)
+            try
             {
-                IncreaseVersion(projectToUpgrade);
-            }
+                _backgroundProgress.TaskName = "Adjusting project version";
+                if (projectToUpgrade.CanIncreaseVersion)
+                {
+                    IncreaseVersion(projectToUpgrade);
+                }
 
-            if (projectToUpgrade.DoesGeneratePackageOnBuild)
-            {
-                SendBuildRequest(projectToUpgrade);
+                if (projectToUpgrade.DoesGeneratePackageOnBuild)
+                {
+                    SendBuildRequest(projectToUpgrade);
+                }
+                else
+                {
+                    PerformNextUpgrade();
+                }
             }
-            else
+            catch (Exception e)
             {
-                PerformNextUpgrade();
+                _notifications.ShowErrorNotification(e.Message);
+                Reset();
             }
         });
     }
@@ -197,9 +208,9 @@ public class NugetUpgrader
     private void SendBuildRequest(ProjectToUpgrade projectToUpgrade)
     {
         _backgroundProgress.TaskName = "Building project";
-        SolutionBuilderRequest buildRequest = _solutionBuilder.CreateBuildRequest(BuildSessionTarget.Build,
-            new[] { projectToUpgrade.Project },
-            SolutionBuilderRequestSilentMode.Default);
+        var buildRequest = _solutionBuilder.CreateBuildRequest(BuildSessionTarget.Build,
+            [projectToUpgrade.Project],
+            SolutionBuilderRequestSilentMode.Default, new SolutionBuilderRequestAdvancedSettings());
         _expectedBuildSessionId = buildRequest.SessionId;
 
         _solutionBuilder.ExecuteBuildRequest(buildRequest);
@@ -268,13 +279,15 @@ public class NugetUpgrader
 
             if (File.Exists(newAbsolutePathToNugetPackage))
             {
-                _notifications.ShowWarningNotification($"Failed to move {nugetFile} file, because {newAbsolutePathToNugetPackage} already exists.");
+                _notifications.ShowWarningNotification(
+                    $"Failed to move {nugetFile} file, because {newAbsolutePathToNugetPackage} already exists.");
             }
             else
             {
                 File.Move(absolutePathToNugetPackage, newAbsolutePathToNugetPackage);
 
-                _notifications.ShowInfoNotification($"Successfully upgraded {assemblyName} to version {version} and moved it to {localNugetFolder}.",
+                _notifications.ShowInfoNotification(
+                    $"Successfully upgraded {assemblyName} to version {version} and moved it to {localNugetFolder}.",
                     assemblyName);
             }
         }
@@ -298,7 +311,8 @@ public class NugetUpgrader
             return new NuGetProjectWithIdentity(ptu.Project, packageIdentity);
         }).ToList();
         // TODO: if we are really cool, we can grab this from the nuget settings in rider
-        var resolutionContext = NuGetResolutionContextFactory.Create(DependencyBehavior.Lowest, true, false, VersionConstraints.None);
+        var resolutionContext =
+            NuGetResolutionContextFactory.Create(DependencyBehavior.Lowest, true, false, VersionConstraints.None);
 
         NuGetFeedContext context = CreateNuGetFeedContext();
         if (context == null)
