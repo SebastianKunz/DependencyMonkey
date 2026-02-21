@@ -46,9 +46,22 @@ public class VersionBumper
                 // TODO: warning 
             }
 
-            if (int.TryParse(labels[1], out int versionInt))
+            if (labels.Length > 1 && int.TryParse(labels[1], out int versionInt))
             {
                 labels[1] = (versionInt + 1).ToString();
+            }
+            else
+            {
+                // If there's no second label or it's not an integer, we start at "1"
+                // or we could append it. Assuming the pattern is tag.number
+                if (labels.Length > 1)
+                {
+                    labels[1] = "1";
+                }
+                else
+                {
+                    labels = new[] { labels[0], "1" };
+                }
             }
 
             return new NuGetVersion(major, minor, patch, labels, version.Metadata);
